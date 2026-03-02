@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class PlayerCharacter : MonoBehaviour
+public class PlayerCharacter : MonoBehaviour, IDamagable
 {
     [SerializeField] private int _maxHealth;
 
@@ -63,10 +63,8 @@ public class PlayerCharacter : MonoBehaviour
         _rb.linearVelocityX = currentX;
     }
 
-
-    private void OnDrawGizmosSelected()
+    public void Damage(int amount)
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(_groundCheck.position, _groundCheckRadius);
+        _healthSystem.Damage(amount);
     }
 }
