@@ -504,10 +504,6 @@ PrefabInstance:
       value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 6099590534244220995, guid: cbddd0c2cdffcb741b339a0de0e25262, type: 3}
-      propertyPath: _dashForce
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 6099590534244220995, guid: cbddd0c2cdffcb741b339a0de0e25262, type: 3}
       propertyPath: _jumpHeight
       value: 5
       objectReference: {fileID: 0}
