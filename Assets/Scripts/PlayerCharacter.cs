@@ -4,6 +4,7 @@ using UnityEngine;
 public class PlayerCharacter : MonoBehaviour, IDamagable
 {
     [SerializeField] private int _maxHealth;
+    [SerializeField] Rigidbody2D _rb;
 
     [Header("Movement")]
     [SerializeField] float _moveSpeed = 8f;
@@ -15,17 +16,26 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
     [SerializeField] Transform _groundCheck;
     [SerializeField] float _groundCheckRadius = 1;
     [SerializeField] LayerMask _groundLayer;
-    
 
-    [SerializeField] Rigidbody2D _rb;
+
+    [Header("Misc")]
+    [SerializeField] PlayerAttackSystem _attackSystem;
+
     private HealthSystem _healthSystem;
-
     private float _inputValue;
 
     private void Awake()
     {
         _healthSystem = new HealthSystem(_maxHealth);
+        _attackSystem.OnHitEnemyHead += AttackSystem_OnHitEnemyHead;
     }
+
+    private void AttackSystem_OnHitEnemyHead()
+    {
+        _rb.linearVelocityY = 0;
+        _rb.AddForce(_jumpForce * 0.7f * Vector2.up, ForceMode2D.Impulse);
+    }
+
     private void Update()
     {
         _inputValue = InputManager.GetMoveValue();
@@ -44,7 +54,6 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
         if (!IsGrounded())
             return;
 
-        Debug.Log("Just jumped");
         _rb.AddForce(Vector2.up * _jumpForce, ForceMode2D.Impulse);
     }
 

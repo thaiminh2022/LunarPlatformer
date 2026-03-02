@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxHealth: 10
+  _rb: {fileID: 2029869048244018141}
   _moveSpeed: 8
   _acceleration: 12
   _deceleration: 15
@@ -59,7 +60,7 @@ MonoBehaviour:
   _groundLayer:
     serializedVersion: 2
     m_Bits: 256
-  _rb: {fileID: 2029869048244018141}
+  _attackSystem: {fileID: 3123517729269016822}
 --- !u!50 &2029869048244018141
 Rigidbody2D:
   serializedVersion: 5

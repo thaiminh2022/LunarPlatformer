@@ -1,9 +1,12 @@
+using System;
 using UnityEngine;
 
 public class PlayerAttackSystem : MonoBehaviour
 {
     [SerializeField] LayerMask _enemyEntityLayer;
     [SerializeField] Transform _checkOrigin;
+
+    public event Action OnHitEnemyHead;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -20,11 +23,11 @@ public class PlayerAttackSystem : MonoBehaviour
             return;
 
 
-
         if (collision.TryGetComponent<IDamagable>(out var damagable))
         {
             // each jump on top head is one hit point
             damagable.Damage(1);
+            OnHitEnemyHead?.Invoke();
         }
     }
 }
