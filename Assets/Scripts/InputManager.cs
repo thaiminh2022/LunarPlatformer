@@ -13,4 +13,6 @@ public class InputManager : MonoBehaviour
 
     // example way of reading value from input system
     public static void GetJump() => inputActions.Player.Jump.WasPressedThisFrame();
+
+    public static float GetMoveValue() => inputActions.Player.Move.ReadValue<float>();
 }
