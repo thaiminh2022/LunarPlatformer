@@ -102,7 +102,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Bao gi\u1EDD l\u1EA5y v\u1EE3?"
+  m_text: "Bao gi\u1EDD l\u1EA5y v\u1EE3 ?"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bf858319bb3d75e45914bb893ebb2f71, type: 2}
   m_sharedMaterial: {fileID: -856875535372234828, guid: bf858319bb3d75e45914bb893ebb2f71, type: 2}
