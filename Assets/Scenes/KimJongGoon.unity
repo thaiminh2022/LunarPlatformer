@@ -164,6 +164,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _thinkingTime: 2
+  _thinkingPosition: {fileID: 617809268}
 --- !u!1 &449613691
 GameObject:
   m_ObjectHideFlags: 0
