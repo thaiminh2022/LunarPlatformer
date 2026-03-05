@@ -31,5 +31,6 @@ public class HealthSystem
     {
         Health += Math.Clamp(Health + amount, 0, MaxHealth);
     }
+    public bool IsDead() => Health <= 0;
 
 }
