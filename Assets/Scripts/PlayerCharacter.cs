@@ -19,6 +19,7 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
     [SerializeField] float _jumpBufferTime = 0.1f; // If player press jump while on air within this time, player auto jump when hit ground
     [SerializeField] float _jumpCutMultiplier = 0.5f; // If player release jump button early, make player jump shorter
     [SerializeField] float _commitTime = 0.2f; // How much time before movement input is lock
+    [SerializeField] int _maxJumps = 2;
 
 
     [Header("Jump/GroundCheck")]
@@ -28,12 +29,21 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
 
     [Header("Jump/Falling")]
     [SerializeField] float _fallGravityScale = 2.2f; // How heavy player is when fall
-    
+
 
     [Header("Misc")]
     [SerializeField] PlayerAttackSystem _attackSystem;
     [SerializeField] private int _maxHealth;
     [SerializeField] Rigidbody2D _rb;
+
+    [Header("VFX")]
+    [SerializeField] private GameObject _jumpVFXPrefab;
+    [SerializeField] private GameObject _dashVFXPrefab;
+
+    [Header("SFX")]
+    [SerializeField] private AudioSource _audioSource;
+    [SerializeField] private AudioClip _jumpSound;
+    [SerializeField] private AudioClip _dashSound;
 
     private HealthSystem _healthSystem;
 
@@ -45,7 +55,8 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
     private bool _isGrounded;
     private bool _justBonk = false;
     private float _defaultGravityScale;
-    
+    private int _jumpsLeft;
+
     // Timer
     private float _coyoteTimer;
     private float _bufferTimer;
@@ -61,6 +72,7 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
 
     private void AttackSystem_OnHitEnemyHead()
     {
+        _jumpsLeft = _maxJumps;
         _rb.linearVelocityY = 0;
         Jump();
         _justBonk = true;
@@ -75,16 +87,27 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
         {
             _queueJump = true;
         }
-          if (InputManager.GetDash() && _queueDash == false)
+        if (InputManager.GetDash() && _queueDash == false)
         {
-            _queueDash =    true; 
+            _queueDash = true;
         }
-        _jumpHeld  = InputManager.GetJumpHeld();
+        _jumpHeld = InputManager.GetJumpHeld();
 
         HandleFlip();
 
-        if (_isGrounded) _coyoteTimer = _coyoteTime;
-        else _coyoteTimer -= Time.deltaTime;
+        if (_isGrounded)
+        {
+            _coyoteTimer = _coyoteTime;
+            _jumpsLeft = _maxJumps;
+        }
+        else
+        {
+            _coyoteTimer -= Time.deltaTime;
+            if (_coyoteTimer <= 0 && _jumpsLeft == _maxJumps)
+            {
+                _jumpsLeft--;
+            }
+        }
 
         if (_queueJump) _bufferTimer = _jumpBufferTime;
         else _bufferTimer -= Time.deltaTime;
@@ -92,12 +115,12 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
         if (_isGrounded) _justBonk = false;
 
         if (_isGrounded || _justBonk) _commitTimer = _commitTime;
-        else if (_commitTimer > 0) _commitTimer -= Time.deltaTime; 
+        else if (_commitTimer > 0) _commitTimer -= Time.deltaTime;
 
-        if(_dashTimer > 0) _dashTimer -= Time.deltaTime; 
+        if (_dashTimer > 0) _dashTimer -= Time.deltaTime;
 
     }
-    private void FixedUpdate()      
+    private void FixedUpdate()
     {
         HandleDash();
         Move();
@@ -119,11 +142,24 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
 
         var dir = transform.localScale.x;
         _rb.linearVelocityX = 0;
+        if (_dashVFXPrefab != null)
+        {
+            GameObject dashVFX = Instantiate(_dashVFXPrefab, transform.position, Quaternion.identity);
+
+            var vfxScale = dashVFX.transform.localScale;
+            vfxScale.x = transform.localScale.x;
+            dashVFX.transform.localScale = vfxScale;
+        }
         _rb.AddForce(_dashForce * dir * Vector2.right, ForceMode2D.Impulse);
+        if (_audioSource != null && _dashSound != null)
+        {
+            _audioSource.PlayOneShot(_dashSound);
+        }
     }
     private void HandleJump()
     {
-        if (_coyoteTimer > 0 && _bufferTimer > 0) {
+        if (_coyoteTimer > 0 && _bufferTimer > 0)
+        {
             _bufferTimer = 0f;
             _coyoteTimer = 0f;
             _queueJump = false;
@@ -131,18 +167,33 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
             _commitTimer = _commitTime;
             Jump();
         }
-
+        else if (_bufferTimer > 0 && _jumpsLeft > 0)
+        {
+            _bufferTimer = 0f;
+            _queueJump = false;
+            _commitTimer = _commitTime;
+            Jump();
+        }
 
         _queueJump = false;
         if (!_jumpHeld && _rb.linearVelocityY > 0.01f && !_justBonk)
         {
             _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _rb.linearVelocity.y * _jumpCutMultiplier);
         }
-    }   
-    private void Jump() 
+    }
+    private void Jump()
     {
+        _jumpsLeft--;
         _rb.linearVelocityY = 0;
         _rb.AddForce(Vector2.up * _jumpForce, ForceMode2D.Impulse);
+        if (_jumpVFXPrefab != null && _groundCheck != null)
+        {
+            Instantiate(_jumpVFXPrefab, _groundCheck.position, Quaternion.identity);
+        }
+        if (_audioSource != null && _jumpSound != null)
+        {
+            _audioSource.PlayOneShot(_jumpSound);
+        }
     }
     private void FallRise()
     {
@@ -158,9 +209,9 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
             return;
 
         var currentX = _rb.linearVelocityX;
-        var targetX = _moveSpeed * _inputX;     
+        var targetX = _moveSpeed * _inputX;
         float rate = _inputX != 0 ? _acceleration : _deceleration;
-        
+
         currentX = Mathf.MoveTowards(currentX, targetX, rate * Time.fixedDeltaTime);
         _rb.linearVelocityX = currentX;
     }
@@ -186,5 +237,5 @@ public class PlayerCharacter : MonoBehaviour, IDamagable
 
     public float GetMoveX() => _inputX;
     public Vector2 GetVelocity() => _rb.linearVelocity;
-    public bool Dashed() => _queueDash && InputManager.GetDash(); 
+    public bool Dashed() => _queueDash && InputManager.GetDash();
 }
